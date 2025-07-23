@@ -1,0 +1,286 @@
+local ESPEnabled = false
+
+local function attachRoleTag(model, roleText, roleColor)
+    local root = model:FindFirstChild("HumanoidRootPart")
+    if not root or model:FindFirstChild("RoleTag") then return end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "RoleTag"
+    billboard.Size = UDim2.new(0, 100, 0, 20)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.Adornee = root
+    billboard.AlwaysOnTop = true
+    billboard.Parent = model
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = roleText
+    label.TextColor3 = roleColor
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.Parent = billboard
+end
+
+local function tagGenerator(model)
+    if model:FindFirstChild("GenTag") then return end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "GenTag"
+    billboard.Size = UDim2.new(0, 100, 0, 20)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.Adornee = model
+    billboard.AlwaysOnTop = true
+    billboard.Parent = model
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = "GENERATOR"
+    label.TextColor3 = Color3.new(1, 1, 0.5) -- vàng nhạt
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.Parent = billboard
+end
+
+-- 🎯 Hàm tạo hiệu ứng Highlight
+local function createOutlineESP(model, outlineColor, fillColor)
+    local highlight = Instance.new("Highlight")
+    highlight.Adornee = model
+    highlight.FillTransparency = 0.75
+    highlight.FillColor = fillColor
+    highlight.OutlineColor = outlineColor
+    highlight.OutlineTransparency = 0 
+    highlight.Parent = model
+end
+
+-- 💡 ESP cho nhóm người
+local function createOutlineESPForGroup(group, outlineColor, fillColor)
+    for _, obj in pairs(group:GetChildren()) do
+        local humanoid = obj:FindFirstChildOfClass("Humanoid")
+        if humanoid and obj:FindFirstChild("HumanoidRootPart") then
+            createOutlineESP(obj, outlineColor, fillColor)
+        end
+    end
+end
+
+-- ⚡ ESP cho generator
+local function highlightGenerators()
+    local mapFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Ingame") and workspace.Map.Ingame:FindFirstChild("Map")
+    if mapFolder then
+        for _, obj in pairs(mapFolder:GetChildren()) do
+            if obj:IsA("Model") and obj.Name == "Generator" then
+                createOutlineESP(obj, Color3.new(0.5, 0.5, 0.5), Color3.new(0.6, 0.6, 0.6))
+            end
+        end
+    end
+end
+
+-- 🔄 Vòng lặp ESP
+function updateESP()
+    while ESPEnabled do
+        -- 1. Xoá highlight cũ
+        for _, obj in pairs(workspace.Players:GetChildren()) do
+            if obj:IsA("Model") and obj:FindFirstChild("Humanoid") then
+                for _, child in pairs(obj:GetChildren()) do
+                    if child:IsA("Highlight") then
+                        child:Destroy()
+                    end
+                end
+            end
+        end
+
+        -- 2. ESP cho Killers
+        local killersGroup = workspace.Players:FindFirstChild("Killers")
+        if killersGroup then
+            createOutlineESPForGroup(killersGroup, Color3.new(1, 0, 0), Color3.new(1, 0.5, 0.5))
+        else
+        end
+        
+        -- 3. ESP cho Survivors
+        local survivorsGroup = workspace.Players:FindFirstChild("Survivors")
+        if survivorsGroup then
+            createOutlineESPForGroup(survivorsGroup, Color3.new(0, 1, 0), Color3.new(0.5, 1, 0.5))
+        else
+        end
+
+        -- 4. ESP cho Generators
+        highlightGenerators()
+
+        -- 5. Chờ 5 giây rồi chạy lại
+        task.wait(5)
+    end
+end
+
+-- Gắn tag vai trò cho Killers
+if killersGroup then
+    createOutlineESPForGroup(killersGroup, Color3.new(1, 0, 0), Color3.new(1, 0.5, 0.5))
+    for _, obj in pairs(killersGroup:GetChildren()) do
+        attachRoleTag(obj, "KILLER", Color3.new(1, 0.25, 0.25))
+    end
+end
+
+if obj:IsA("Model") and obj.Name == "Generator" then
+    createOutlineESP(obj, Color3.new(0.8, 0.8, 0.8), Color3.new(0.9, 0.9, 0.9))
+    tagGenerator(obj)
+end
+
+-- Gắn tag vai trò cho Survivors
+if survivorsGroup then
+    createOutlineESPForGroup(survivorsGroup, Color3.new(0.35, 0.6, 1), Color3.new(0.75, 0.85, 1))
+    for _, obj in pairs(survivorsGroup:GetChildren()) do
+    attachRoleTag(obj, "SURVIVOR", Color3.new(0.6, 1, 0.6)) -- xanh lá sáng
+      end
+end
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local MainWindow = Rayfield:CreateWindow({
+   Name = "[NOLI🎭]ForSaken Script🔥",
+   Icon = nil, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   LoadingTitle = "QuanDz Hub",
+   LoadingSubtitle = "Script Work In Delta And More",
+   ShowText = "Rayfield", -- for mobile users to unhide rayfield, change if you'd like
+   Theme = "AmberGlow", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   ToggleUIKeybind = "K", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "Skibidisaken"
+   },
+
+   Discord = {
+      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+
+   KeySystem = true, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "Get Key🔑",
+      Subtitle = "Key System",
+      Note = "Key In DisCord🔑", -- Use this to tell the user how to get a key
+      FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"Chubby"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+   }
+}) --Main Tab
+local MainTab = MainWindow:CreateTab("🏡Home", nil) -- Title, Image
+local MainSection = MainTab:CreateSection("Main")
+local Running = false
+local StaminaLoop
+
+MainToggle = MainTab:CreateToggle({
+   Name = "INF Stamina",
+   CurrentValue = false,
+   Flag = "Toggle1",
+   Callback = function(Value)
+      Running = Value
+      local StaminaModule = require(game.ReplicatedStorage.Systems.Character.Game.Sprinting)
+      StaminaModule.StaminaLossDisabled = Value
+
+      if Value then
+         StaminaLoop = task.spawn(function()
+            while Running do
+               task.wait(0.1)
+               StaminaModule.Stamina = StaminaModule.MaxStamina
+               StaminaModule.StaminaChanged:Fire()
+            end
+         end)
+      end
+   end,
+}) --Misc Tab
+local MiscTab = MainWindow:CreateTab("🌐Misc", nil) -- Title, Image
+local MiscSection = MiscTab:CreateSection("Misc")
+local MiscButton = MiscTab:CreateButton({
+    Name = "NoFog And Fix Lag",
+    Callback = function()
+        -- ☁️ Xóa các Sky đang tồn tại
+        for _, v in pairs(game.Lighting:GetChildren()) do
+            if v:IsA("Sky") then
+                v:Destroy()
+            end
+        end
+
+        -- 🌄 Gắn lại Sky mặc định Roblox
+        local defaultSky = Instance.new("Sky")
+        defaultSky.SkyboxBk = "rbxassetid://401664839"
+        defaultSky.SkyboxDn = "rbxassetid://401664889"
+        defaultSky.SkyboxFt = "rbxassetid://401664831"
+        defaultSky.SkyboxLf = "rbxassetid://401664808"
+        defaultSky.SkyboxRt = "rbxassetid://401664845"
+        defaultSky.SkyboxUp = "rbxassetid://401664874"
+        defaultSky.Parent = game.Lighting
+
+        -- 🔁 Tự động xóa bất kỳ Sky mới nào
+        game.Lighting.ChildAdded:Connect(function(child)
+            if child:IsA("Sky") then
+                task.wait(0.1)
+                child:Destroy()
+            end
+        end)
+
+        -- 🌫 Xóa sương mù và điều chỉnh ánh sáng
+        game.Lighting.FogEnd = 100000
+        game.Lighting.FogStart = 0
+        game.Lighting.ClockTime = 14
+        game.Lighting.Brightness = 2
+        game.Lighting.GlobalShadows = false
+
+        -- 🚀 Giảm lag nhẹ
+        local function reduceLag()
+            for _, v in pairs(workspace:GetDescendants()) do
+                if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Explosion") or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
+                    v.Enabled = false
+                elseif v:IsA("Decal") or v:IsA("Texture") then
+                    v.Transparency = 0.5
+                elseif v:IsA("MeshPart") then
+                    v.Material = Enum.Material.Plastic
+                    v.Reflectance = 0
+                end
+            end
+        end
+        reduceLag()
+    end,
+})
+local MiscToggle = MiscTab:CreateToggle({
+    Name = "Esp (Survivor Killer Generator)",
+    CurrentValue = false,
+    Flag = "Toggle2",
+    Callback = function(Value)
+        ESPEnabled = Value
+        if Value then
+            task.spawn(updateESP)
+        else
+        
+        for _, obj in pairs(workspace.Players:GetChildren()) do
+    if obj:IsA("Model") then
+        if obj:FindFirstChild("RoleTag") then obj.RoleTag:Destroy() end
+    end
+end
+
+for _, obj in pairs(workspace:GetDescendants()) do
+    if obj:IsA("Model") and obj.Name == "Generator" and obj:FindFirstChild("GenTag") then
+        obj.GenTag:Destroy()
+    end
+end
+        
+            -- Xoá highlight khi tắt ESP
+            for _, obj in pairs(workspace.Players:GetChildren()) do
+                if obj:IsA("Model") and obj:FindFirstChild("Humanoid") then
+                    for _, child in pairs(obj:GetChildren()) do
+                        if child:IsA("Highlight") then
+                            child:Destroy()
+                        end
+                    end
+                end
+            end
+        end
+    end
+})
